@@ -8,7 +8,11 @@ DATASET_DIR=dataset/
 endif
 
 ifeq ($(DATASET_PATH),)
-DATASET_PATH=$(DATASET_DIR)$(DATASET).csv
+DATASET_PATH=$(DATASET_DIR)$(DATASET).sqlite3
+endif
+
+ifeq ($(DATASET_URL),)
+DATASET_URL='https://github.com/digital-land/$(DATASET)-collection/raw/main/dataset/$(DATASET).sqlite3'
 endif
 endif
 
@@ -34,8 +38,13 @@ endif
 server:
 	cd docs && python3 -m http.server
 
-clobber clean::
-	rm -rf $(DATASET_PATH) $(DOCS_DIR)
+clobber clean:: clobber-dataset clobber-docs
+	
+clobber-dataset::
+	rm -rf $(DATASET_PATH)
+	
+clobber-docs::
+	rm -rf $(DOCS_DIR)
 
 makerules::
 	curl -qsL '$(SOURCE_URL)/makerules/main/render.mk' > makerules/render.mk
@@ -49,7 +58,7 @@ commit-docs::
 ifneq ($(DATASET_PATH),)
 $(DATASET_PATH):
 	mkdir -p $(DATASET_DIR)
-	curl -qsL 'https://raw.githubusercontent.com/digital-land/$(DATASET)-collection/main/dataset/$(DATASET).csv' > $(DATASET_PATH)
+	curl -qsL $(DATASET_URL) > $(DATASET_PATH)
 endif
 
 # TBD: remove this rule
